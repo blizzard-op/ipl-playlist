@@ -25,24 +25,21 @@ func init() {
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
 	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 24).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.Parse() // parses the flags
+	parseTimeVar(timeFormat, startsAtTime, &startsAt) // parse startsAt
+	parseTimeVar(timeFormat, endsAtTime, &endsAt) // parse endsAt
+}
+
+func parseTimeVar(format string, value string, ptr *time.Time) {
+	t, err := time.Parse(format, value)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    *ptr = t
 }
 
 func main() {
 	fmt.Println("Starting...")
-
-	// parse startsAt
-	startsAt, err := time.Parse(timeFormat, startsAtTime)
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-
-    // parse endsAt
-    endsAt, err := time.Parse(timeFormat, endsAtTime)
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
 
 	// flags
 	fmt.Printf("Franchise\n\targ: %s\n", franchiseName)
@@ -50,4 +47,4 @@ func main() {
 	fmt.Printf("Ends\n\targ: %v\n\ttime: %v\n", endsAtTime, endsAt)
 
 	fmt.Println("Done.")
-}	
+}
