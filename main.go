@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"flag"
 	"time"
+	playlist "./playlist"
 )
 
 const timeFormat = time.RFC3339
@@ -45,6 +46,10 @@ func main() {
 	fmt.Printf("Franchise\n\targ: %s\n", franchiseName)
 	fmt.Printf("Starts\n\targ: %v\n\ttime: %v\n", startsAtTime, startsAt)
 	fmt.Printf("Ends\n\targ: %v\n\ttime: %v\n", endsAtTime, endsAt)
+
+	// construct playlist
+	playlist := playlist.Playlist{startsAt, endsAt}
+	fmt.Printf("Playlist\n%v\n", playlist)
 
 	fmt.Println("Done.")
 }
