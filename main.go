@@ -22,8 +22,8 @@ var endsAtTime string;
 func main() {
 	now := time.Now()
 	flag.StringVar(&franchiseName, "franchise", "StarCraft 2", "Name of franchise. Default is StarCraf 2.")
-	flag.StringVar(&startsAtTime, "startsAt", now.Format(timeFormat), "Start time. Default is now.")
-	flag.StringVar(&endsAtTime, "endsAt", now.Add(time.Hour * 24).Format(timeFormat), "End time. Default is 24 hours from now.")
+	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
+	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 24).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.Parse() // parses the flags
 
 	startsAt, err := time.Parse(timeFormat, startsAtTime)
