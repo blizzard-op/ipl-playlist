@@ -5,7 +5,7 @@ import (
 	"flag"
 	"time"
 	playlist "./playlist"
-	//yaml "github.com/kylelemons/go-gypsy/yaml"
+	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
 const timeFormat = time.RFC3339
@@ -29,7 +29,7 @@ func init() {
 	flag.StringVar(&franchiseName, "franchise", "StarCraft 2", "Name of franchise. Default is StarCraft 2.")
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
 	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 24).Format(timeFormat), "End time. Default is 24 hours from now.")
-	flag.StringVar(&configFilepath, "c", "config.yml", "Config filepath. Default is './config.yml.'")
+	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
 	flag.Parse() // parses the flags
 	parseTimeVar(timeFormat, startsAtTime, &startsAt) // parse startsAt
 	parseTimeVar(timeFormat, endsAtTime, &endsAt) // parse endsAt
@@ -53,8 +53,11 @@ func main() {
 	fmt.Printf("Ends\n\targ: %v\n\ttime: %v\n", endsAtTime, endsAt)
 	fmt.Printf("Config\n\targ: %s\n", configFilepath)
 
+	// config
+	config := yaml.ConfigFile(configFilepath)
+
 	// construct playlist
-	playlist := playlist.Playlist{startsAt, endsAt}
+	playlist := playlist.Playlist{startsAt, endsAt, *config}
 	fmt.Printf("Playlist\n%v\n", playlist)
 
 	fmt.Println("Done.")
