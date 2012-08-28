@@ -58,7 +58,7 @@ func main() {
 
 	// construct playlist
 	playlist := playlist.Playlist{startsAt, endsAt, *config}
-	fmt.Printf("Playlist\n%v\n", playlist)
+	playlist.Make()
 
 	fmt.Println("Done.")
 }
