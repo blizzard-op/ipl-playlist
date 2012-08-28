@@ -48,17 +48,18 @@ func main() {
 	fmt.Println("Starting...")
 
 	// flags
-	fmt.Printf("Franchise\n\targ: %s\n", franchiseName)
-	fmt.Printf("Starts\n\targ: %v\n\ttime: %v\n", startsAtTime, startsAt)
-	fmt.Printf("Ends\n\targ: %v\n\ttime: %v\n", endsAtTime, endsAt)
-	fmt.Printf("Config\n\targ: %s\n", configFilepath)
+	// fmt.Printf("Franchise\n\targ: %s\n", franchiseName)
+	// fmt.Printf("Starts\n\targ: %v\n\ttime: %v\n", startsAtTime, startsAt)
+	// fmt.Printf("Ends\n\targ: %v\n\ttime: %v\n", endsAtTime, endsAt)
+	// fmt.Printf("Config\n\targ: %s\n", configFilepath)
 
 	// config
 	config := yaml.ConfigFile(configFilepath)
 
 	// construct playlist
-	playlist := playlist.Playlist{startsAt, endsAt, *config}
-	playlist.Make()
+	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config)
+
+	fmt.Printf("%v\n", playlist)
 
 	fmt.Println("Done.")
 }
