@@ -5,6 +5,8 @@ import (
 	"time"
 	"strconv"
 	"os"
+	"os/exec"
+	"log"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -60,11 +62,14 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
  	return p
 }
 
+
+
 // A PlaylistBlock is a description of a set of related media files to keep grouped together.
 type PlaylistBlock struct {
 	Title string
 	Series string
 	Items []*os.File
+	Duration int
 }
 
 func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistBlock {
@@ -73,9 +78,8 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 	count := filepaths.Len()
 	if (count <= 0) {
 		panic("List of filepaths is empty.")
-	}
+	}	
 	b.Items = make([]*os.File, count)
-
 	for i, e := range filepaths {
 		f, err := os.Open(e.(yaml.Scalar).String())
 		if err != nil {
@@ -83,6 +87,34 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 		}
 		b.Items[i] = f
 	}
+	b.Duration = b.GetDuration()
 
 	return b
+}
+
+func (b *PlaylistBlock) GetDuration() int {
+	output_filepath := "tmp.flv"
+
+	for _, f := range b.Items {
+		cmd := exec.Command("ffmpeg", "-i", f.Name(), "-c", "copy", "-t", "1", output_filepath) // hack to get zero exit code
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+		    log.Fatal(err)
+		}
+		if err := cmd.Start(); err != nil {
+		    log.Fatal(err)
+		}
+		log.Printf("Getting duration for %s", f.Name())
+		if err := cmd.Wait(); err != nil {
+		    log.Fatal(err)
+		}
+		log.Printf("stdout: %T; %v", stdout, stdout)
+
+		// cleanup tmp output
+		if err := os.Remove(output_filepath); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return 0
 }

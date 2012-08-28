@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"flag"
 	"time"
+	"os/exec"
 	playlist "./playlist"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
@@ -47,6 +48,11 @@ func parseTimeVar(format string, value string, ptr *time.Time) {
 func main() {
 	fmt.Println("Starting...")
 
+	_, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		panic("Could not find ffmpeg. Please")
+	}
+
 	// flags
 	// fmt.Printf("Franchise\n\targ: %s\n", franchiseName)
 	// fmt.Printf("Starts\n\targ: %v\n\ttime: %v\n", startsAtTime, startsAt)
@@ -59,7 +65,7 @@ func main() {
 	// construct playlist
 	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config)
 
-	fmt.Printf("%v\n", playlist)
+	fmt.Printf("%T\n", playlist)
 
 	fmt.Println("Done.")
 }
