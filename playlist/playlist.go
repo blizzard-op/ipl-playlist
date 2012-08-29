@@ -9,6 +9,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"math"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -93,6 +94,8 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 }
 
 func (b *PlaylistBlock) GetDuration() int {
+	total := 0
+
 	output_filepath := "tmp.flv"
 	cleanup(output_filepath)
 
@@ -119,14 +122,20 @@ func (b *PlaylistBlock) GetDuration() int {
 		if result == nil {
 			log.Fatalf("Could not determine duration")
 		}
-		durationParts := strings.Split(string(result[1]), ":")
-		log.Printf("%q", durationParts)
+		log.Printf("%s", result)
+		parts := strings.Split(string(result[1]), ":")
+		for i, part := range parts {
+			x, _ := strconv.Atoi(part)
+			val := int( math.Pow(60, float64(len(parts[i+1:]))) ) * x
+			total = total + val
+		}
 
 		// cleanup
 		cleanup(output_filepath)
 	}
 
-	return 0
+	log.Printf("total: %d", total)
+	return total
 }
 
 func cleanup(path string) {
