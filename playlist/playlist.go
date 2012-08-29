@@ -74,6 +74,7 @@ type PlaylistBlock struct {
 }
 
 func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistBlock {
+	log.Printf("Initializing block for %s", t)
 	b.Title = t
 	b.Series = s
 	count := filepaths.Len()
