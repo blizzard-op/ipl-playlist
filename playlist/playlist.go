@@ -7,6 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"log"
+	//"io/ioutil"
+	//"io"
+	//"bufio"
+	//"errors"
+	//"bytes"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -62,8 +67,6 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
  	return p
 }
 
-
-
 // A PlaylistBlock is a description of a set of related media files to keep grouped together.
 type PlaylistBlock struct {
 	Title string
@@ -94,27 +97,42 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 
 func (b *PlaylistBlock) GetDuration() int {
 	output_filepath := "tmp.flv"
+	cleanup(output_filepath)
 
 	for _, f := range b.Items {
-		cmd := exec.Command("ffmpeg", "-i", f.Name(), "-c", "copy", "-t", "1", output_filepath) // hack to get zero exit code
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-		    log.Fatal(err)
-		}
-		if err := cmd.Start(); err != nil {
-		    log.Fatal(err)
-		}
-		log.Printf("Getting duration for %s", f.Name())
-		if err := cmd.Wait(); err != nil {
-		    log.Fatal(err)
-		}
-		log.Printf("stdout: %T; %v", stdout, stdout)
+		path := f.Name()
+		log.Printf("Getting duration for %s", path)
 
-		// cleanup tmp output
-		if err := os.Remove(output_filepath); err != nil {
-			log.Fatal(err)
-		}
+		cmd := exec.Command("ffmpeg", "-i", path, "-c", "copy", "-t", "1", output_filepath) // hack to get zero exit code
+
+		stdout, er := cmd.CombinedOutput()
+		if er != nil {
+			log.Fatalf("cmd.CombinedOutput: %v", er)
+    	}
+
+		// runError := cmd.Run()
+		// if runError != nil {
+		// 	log.Fatalf("cmd.Run: %v", runError)
+  //   	}
+
+		// b, readAllError := ioutil.ReadAll(stdout)
+		// if readAllError != nil {
+		// 	log.Fatalf("ioutil.ReadAll: %v", readAllError)
+  //   	}
+		log.Printf("output: %s", stdout)
+
+		// cleanup
+		cleanup(output_filepath)
 	}
 
 	return 0
+}
+
+func cleanup(path string) {
+	if f, err := os.Open(path); err == nil {
+		log.Printf("Cleaning up %s", f.Name())
+		if err := os.Remove(path); err != nil {
+			log.Fatal(err)
+		}
+	}
 }
