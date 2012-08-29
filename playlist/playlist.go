@@ -40,7 +40,7 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 	if (count <= 0) {
 		panic("List of items is empty.") // items node must be a non-empty list
 	}
-	Items := make([]*PlaylistBlock, count)
+	p.Items = make([]*PlaylistBlock, count)
 
 	// blocks
 	for i, e := range lst {
@@ -61,9 +61,17 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 			panic(err)
 		}
 
-		Items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
+		p.Items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
 	}
  	return p
+}
+
+func (p *Playlist) TotalItems() int {
+	total := 0
+	for _, block := range p.Items {
+		total += len(block.Items)
+	}
+	return total
 }
 
 type XspfPlaylist struct {
@@ -79,8 +87,18 @@ type XspfTrack struct {
 
 func (p *Playlist) Make() *Playlist {
 	log.Printf("Making playlist...")
+	log.Printf("total = %d", p.TotalItems())
 
-	tracks := []XspfTrack{ XspfTrack{Location: "foo"}, XspfTrack{Location: "bar"}, XspfTrack{Location: "baz"} }
+	tracks := make([]XspfTrack, p.TotalItems())
+	index := 0
+	for _, block := range p.Items {
+		for _, item := range block.Items {
+			//fmt.Printf("%d %s\n", index, item.Name())
+			tracks[index] = XspfTrack{Location: item.Name()}
+			index++
+		}
+	}
+
 	xspf := &XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
 
 	xmlstring, err := xml.MarshalIndent(xspf, "", "    ")
