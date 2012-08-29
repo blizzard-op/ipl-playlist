@@ -85,7 +85,7 @@ type XspfTrack struct {
 	Location string `xml:"location"`
 }
 
-func (p *Playlist) Make() *Playlist {
+func (p *Playlist) Make() (*os.File, error) {
 	log.Printf("Making playlist...")
 	log.Printf("total = %d", p.TotalItems())
 
@@ -109,7 +109,7 @@ func (p *Playlist) Make() *Playlist {
 
 	os.Stdout.Write(xmlstring)
 
-	return p
+	return os.Create("out.xspf")
 }
 
 // A PlaylistBlock is a description of a set of related media files to keep grouped together.

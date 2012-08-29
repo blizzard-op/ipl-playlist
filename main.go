@@ -5,6 +5,7 @@ import (
 	"flag"
 	"time"
 	"os/exec"
+	"log"
 	playlist "./playlist"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
@@ -56,7 +57,11 @@ func main() {
 	config := yaml.ConfigFile(configFilepath)
 
 	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config)
-	playlist.Make()
+	output, err := playlist.Make()
+	if err != nil {
+		log.Fatalf("Could not make playlist. %v", err)
+	}
+	log.Printf("%T", output)
 
 	fmt.Println("Done.")
 }
