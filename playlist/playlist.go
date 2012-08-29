@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"math"
+	"encoding/xml"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -63,6 +64,34 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 		Items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
 	}
  	return p
+}
+
+type XspfPlaylist struct {
+    XMLName xml.Name `xml:"playlist"`
+    Version string `xml:"version,attr"`
+    Xmlns string `xml:"xmlns,attr"`
+    XspfTracks []XspfTrack `xml:"trackList>track"`
+}
+
+type XspfTrack struct {
+	Location string `xml:"location"`
+}
+
+func (p *Playlist) Make() *Playlist {
+	log.Printf("Making playlist...")
+
+	tracks := []XspfTrack{ XspfTrack{Location: "foo"}, XspfTrack{Location: "bar"}, XspfTrack{Location: "baz"} }
+	xspf := &XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
+
+	xmlstring, err := xml.MarshalIndent(xspf, "", "    ")
+	if err != nil {
+	    log.Fatalf("xml.MarshalIndent: %v", err)
+	}
+	xmlstring = []byte(xml.Header + string(xmlstring) + "\n\n")
+
+	os.Stdout.Write(xmlstring)
+
+	return p
 }
 
 // A PlaylistBlock is a description of a set of related media files to keep grouped together.

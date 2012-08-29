@@ -53,19 +53,10 @@ func main() {
 		panic("Could not find ffmpeg. Please")
 	}
 
-	// flags
-	// fmt.Printf("Franchise\n\targ: %s\n", franchiseName)
-	// fmt.Printf("Starts\n\targ: %v\n\ttime: %v\n", startsAtTime, startsAt)
-	// fmt.Printf("Ends\n\targ: %v\n\ttime: %v\n", endsAtTime, endsAt)
-	// fmt.Printf("Config\n\targ: %s\n", configFilepath)
-
-	// config
 	config := yaml.ConfigFile(configFilepath)
 
-	// construct playlist
 	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config)
-
-	fmt.Printf("%T\n", playlist)
+	playlist.Make()
 
 	fmt.Println("Done.")
 }
