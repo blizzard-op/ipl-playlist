@@ -7,11 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"log"
-	//"io/ioutil"
-	//"io"
-	//"bufio"
-	//"errors"
-	//"bytes"
+	"regexp"
+	"strings"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -99,6 +96,12 @@ func (b *PlaylistBlock) GetDuration() int {
 	output_filepath := "tmp.flv"
 	cleanup(output_filepath)
 
+	// Duration: 00:08:59.66
+	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
+	if err != nil {
+		log.Fatalf("regexp.Compile: %v", err)
+	}
+
 	for _, f := range b.Items {
 		path := f.Name()
 		log.Printf("Getting duration for %s", path)
@@ -108,18 +111,16 @@ func (b *PlaylistBlock) GetDuration() int {
 		stdout, er := cmd.CombinedOutput()
 		if er != nil {
 			log.Fatalf("cmd.CombinedOutput: %v", er)
-    	}
+		}
 
-		// runError := cmd.Run()
-		// if runError != nil {
-		// 	log.Fatalf("cmd.Run: %v", runError)
-  //   	}
+		//log.Printf("output: %s", stdout)
 
-		// b, readAllError := ioutil.ReadAll(stdout)
-		// if readAllError != nil {
-		// 	log.Fatalf("ioutil.ReadAll: %v", readAllError)
-  //   	}
-		log.Printf("output: %s", stdout)
+		result := exp.FindSubmatch(stdout)
+		if result == nil {
+			log.Fatalf("Could not determine duration")
+		}
+		durationParts := strings.Split(string(result[1]), ":")
+		log.Printf("%q", durationParts)
 
 		// cleanup
 		cleanup(output_filepath)
@@ -130,8 +131,7 @@ func (b *PlaylistBlock) GetDuration() int {
 
 func cleanup(path string) {
 	if f, err := os.Open(path); err == nil {
-		log.Printf("Cleaning up %s", f.Name())
-		if err := os.Remove(path); err != nil {
+		if err := os.Remove(f.Name()); err != nil {
 			log.Fatal(err)
 		}
 	}
