@@ -93,8 +93,7 @@ func (p *Playlist) Make() (*os.File, error) {
 	index := 0
 	for _, block := range p.Items {
 		for _, item := range block.Items {
-			//fmt.Printf("%d %s\n", index, item.Name())
-			tracks[index] = XspfTrack{Location: item.Name()}
+			tracks[index] = XspfTrack{Location: "file://" + item.Name()}
 			index++
 		}
 	}
@@ -105,11 +104,27 @@ func (p *Playlist) Make() (*os.File, error) {
 	if err != nil {
 	    log.Fatalf("xml.MarshalIndent: %v", err)
 	}
-	xmlstring = []byte(xml.Header + string(xmlstring) + "\n\n")
 
-	os.Stdout.Write(xmlstring)
+	// create file
+	output, err := os.Create("out.xspf")
+	if err != nil {
+	    log.Fatalf("os.Create: %v", err)
+	}
 
-	return os.Create("out.xspf")
+	// write file
+	bytesWritten, err := output.Write( []byte(xml.Header + string(xmlstring)) )
+	if err != nil {
+	    log.Fatalf("output.Write: %v", err)
+	}
+	log.Printf("bytesWritten: %d", bytesWritten)
+
+	// close file
+	err = output.Close()
+	if err != nil {
+	    log.Fatalf("output.Close: %v", err)
+	}
+
+	return output, err
 }
 
 // A PlaylistBlock is a description of a set of related media files to keep grouped together.
