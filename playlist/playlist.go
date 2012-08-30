@@ -18,33 +18,25 @@ import (
 type Playlist struct {
 	StartsAt, EndsAt time.Time
 	Config yaml.File
-	CommonConfig *yaml.File
 	Items []*PlaylistBlock
+	ExtrasConfig yaml.File
+	ExtraItems []*PlaylistBlock
 }
 
-func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
+func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File, xc yaml.File) *Playlist {
  	fmt.Println("Initializing playlist...")
  	p.StartsAt = s
  	p.EndsAt = e
  	p.Config = c
+ 	p.ExtrasConfig = xc
+	p.setItems( &p.Items, p.Config, "items" )
+	p.setItems( &p.ExtraItems, p.ExtrasConfig, "extras" )
+ 	return p
+}
 
- 	// common items
- 	path, err := p.Config.Get("common_config_filepath")
- 	if err != nil {
-		log.Fatalf("Missing common config. %v", err)
-	}
- 	p.CommonConfig = yaml.ConfigFile(path)
- 	commonItemsNode, err := yaml.Child( p.CommonConfig.Root, "items" )
-	if err != nil {
-		log.Fatalf("No items. %v", err) // items node must be present
-	}
-	common_lst, ok := commonItemsNode.(yaml.List)
-	if !ok {
-		log.Fatalf("Invalid common items. %v", err)
-	}
+func (p *Playlist) setItems( items *[]*PlaylistBlock, config yaml.File, key string ) {
 
-	// items
-	node, err := yaml.Child( p.Config.Root, "items" )
+	node, err := yaml.Child( config.Root, key )
 	if err != nil {
 		log.Fatalf("No items. %v", err) // items node must be present
 	}
@@ -52,26 +44,24 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 	if !ok {
 		log.Fatalf("Invalid items. %v", err)
 	}
-
-	// combined items
-	count := lst.Len() + common_lst.Len()
+	count := lst.Len()
 	if (count <= 0) {
 		log.Fatalf("No items. %v", err) // items node must be a non-empty list
 	}
-	p.Items = make([]*PlaylistBlock, count)
+	*items = make([]*PlaylistBlock, count)
 
 	// blocks
 	for i, e := range lst {
-		itemKey := "items[" + strconv.Itoa(i) + "]"
+		itemKey := key + "[" + strconv.Itoa(i) + "]"
 
-		title, err := p.Config.Get(itemKey + ".title")
+		title, err := config.Get(itemKey + ".title")
 		if (err != nil) {
 			log.Fatalf("Missing title.")
 		}
 
 		series, err := p.Config.Get(itemKey + ".series")
 		if (err != nil) {
-			log.Fatalf("Missing series for %s.", title)
+			series = ""
 		}
 
 		filepathsNode, err := yaml.Child( e, "filepaths" )
@@ -79,27 +69,9 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 			log.Fatalf("Missing filepaths for %s.", title)
 		}
 
-		p.Items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
+		(*items)[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
 	}
 
-	// common blocks
-	for i, e := range common_lst {
-		itemKey := "items[" + strconv.Itoa(i) + "]"
-
-		title, err := p.CommonConfig.Get(itemKey + ".title")
-		if (err != nil) {
-			log.Fatalf("Missing title.")
-		}
-
-		filepathsNode, err := yaml.Child( e, "filepaths" )
-		if err != nil {
-			log.Fatalf("Missing filepaths for %s.", title)
-		}
-
-		p.Items[i + lst.Len()] = new(PlaylistBlock).Init(title, "", filepathsNode.(yaml.List))
-	}
-
- 	return p
 }
 
 func (p *Playlist) TotalItems() int {
@@ -130,10 +102,9 @@ func (p *Playlist) ArrangedItems() {
 
 	i := 0
 	var block *PlaylistBlock
-	for {
-		// less than 1 minute of available duration left
+	for {		
 		if d < 60 {
-			break
+			break // less than 1 minute of available duration left
 		}
 
 		block = p.nextBlockToFill(i, d)
@@ -141,7 +112,7 @@ func (p *Playlist) ArrangedItems() {
 			log.Printf("No block available to fill. duration=%d", d)
 			break
 		}
-		fmt.Printf("Available=%d\n\tArranging %s [%ds]\n", d, block.Title, block.Duration)
+		fmt.Printf("Available=%d; Arranging %s [%ds]\n", d, block.Title, block.Duration)
 		d -= block.Duration
 		i += 1
 
@@ -149,6 +120,7 @@ func (p *Playlist) ArrangedItems() {
 			i = 0
 		}
 	}
+	fmt.Printf("Leftover duration: %ds\n", d)
 	return
 }
 

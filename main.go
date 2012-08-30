@@ -21,13 +21,15 @@ var endsAt time.Time; // time to end
 var endsAtTime string;
 
 var configFilepath string;
+var extrasConfigFilepath string;
 
 func init() {
 	now := time.Now()
 	flag.StringVar(&franchiseName, "franchise", "StarCraft 2", "Name of franchise. Default is StarCraft 2.")
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
-	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 6).Format(timeFormat), "End time. Default is 24 hours from now.")
+	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 4).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
+	flag.StringVar(&extrasConfigFilepath, "extras", "config.yml", "Extras config filepath. Default is './config.yml.'")
 	flag.Parse() // parses the flags
 	parseTimeVar(timeFormat, startsAtTime, &startsAt) // parse startsAt
 	parseTimeVar(timeFormat, endsAtTime, &endsAt) // parse endsAt
@@ -50,8 +52,9 @@ func main() {
 	}
 
 	config := yaml.ConfigFile(configFilepath)
+	extrasConfig := yaml.ConfigFile(extrasConfigFilepath)
 
-	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config)
+	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
 	output, err := playlist.Make()
 	if err != nil {
 		log.Fatalf("Could not make playlist. %v", err)
