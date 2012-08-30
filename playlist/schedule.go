@@ -2,7 +2,6 @@ package playlist
 
 import (
 	"fmt"
-	"os"
 	"math"
 	"time"
 )
@@ -64,17 +63,4 @@ func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, du
 		}
 	}
 	return nil
-}
-
-func (p *Playlist) Output() (*os.File, error) {
-	fmt.Printf("Outputting playlist...\n")
-	items := p.ArrangedItems()
-	tracks := make([]XspfTrack, 0)
-	for _, block := range items {
-		for _, item := range block.Items {
-			tracks = append(tracks, XspfTrack{Location: "file://" + item.Name()})
-		}
-	}
-	x := XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
-	return x.Output()
 }
