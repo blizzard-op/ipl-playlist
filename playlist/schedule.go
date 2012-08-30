@@ -5,18 +5,17 @@ import (
 	"os"
 	"log"
 	"math"
+	"time"
 	"encoding/xml"
 )
 
-func (p *Playlist) availableDuration() float64 {
-	return p.EndsAt.Sub(p.StartsAt).Seconds()
+func (p *Playlist) availableDuration() time.Duration {
+	return p.EndsAt.Sub(p.StartsAt)
 }
 
 func (p *Playlist) ArrangedItems() []*PlaylistBlock {	
-	fmt.Printf("Target duration: %s\n", p.EndsAt.Sub(p.StartsAt).String())
-
-	d := int(p.availableDuration())
-
+	fmt.Printf("Target duration: %s\n", p.availableDuration().String())
+	d := int(p.availableDuration().Seconds())
 	var items []*PlaylistBlock
 	var block *PlaylistBlock
 	var i, primaryIndex, extrasIndex int
