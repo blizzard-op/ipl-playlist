@@ -74,14 +74,6 @@ func (p *Playlist) setItems( items *[]*PlaylistBlock, config yaml.File, key stri
 
 }
 
-func (p *Playlist) TotalItems() int {
-	total := 0
-	for _, block := range p.Items {
-		total += len(block.Items)
-	}
-	return total
-}
-
 type XspfPlaylist struct {
     XMLName xml.Name `xml:"playlist"`
     Version string `xml:"version,attr"`
@@ -97,7 +89,7 @@ func (p *Playlist) availableDuration() float64 {
 	return p.EndsAt.Sub(p.StartsAt).Seconds()
 }
 
-func (p *Playlist) ArrangedItems() []*PlaylistBlock {
+func (p *Playlist) ArrangedItems() []*PlaylistBlock {	
 	d := int(p.availableDuration())
 
 	var items []*PlaylistBlock
@@ -130,7 +122,7 @@ func (p *Playlist) ArrangedItems() []*PlaylistBlock {
 		
 		i += 1
 	}
-	fmt.Printf("Total items: %d\nLeftover duration: %ds\n", len(items), d)
+	fmt.Printf("Total items arranged: %d\n%ds out of %ds remaining\n", len(items), d, int(p.availableDuration()))
 	return items
 }
 
@@ -157,14 +149,12 @@ func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, du
 func (p *Playlist) Make() (*os.File, error) {
 	log.Printf("Making playlist...")
 
-	p.ArrangedItems()
+	items := p.ArrangedItems()
+	tracks := make([]XspfTrack, 0)
 
-	tracks := make([]XspfTrack, p.TotalItems())
-	index := 0
-	for _, block := range p.Items {
+	for _, block := range items {
 		for _, item := range block.Items {
-			tracks[index] = XspfTrack{Location: "file://" + item.Name()}
-			index++
+			tracks = append(tracks, XspfTrack{Location: "file://" + item.Name()})
 		}
 	}
 
