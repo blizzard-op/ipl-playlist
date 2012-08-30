@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"flag"
 	"time"
 	"os/exec"
@@ -27,7 +26,7 @@ func init() {
 	now := time.Now()
 	flag.StringVar(&franchiseName, "franchise", "StarCraft 2", "Name of franchise. Default is StarCraft 2.")
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
-	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 5).Format(timeFormat), "End time. Default is 24 hours from now.")
+	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour*24).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
 	flag.StringVar(&extrasConfigFilepath, "extras", "config.yml", "Extras config filepath. Default is './config.yml.'")
 	flag.Parse() // parses the flags
@@ -44,7 +43,7 @@ func parseTimeVar(format string, value string, ptr *time.Time) {
 }
 
 func main() {
-	fmt.Println("Starting...")
+	log.Println("Starting...")
 
 	_, err := exec.LookPath("ffmpeg")
 	if err != nil {
@@ -55,11 +54,11 @@ func main() {
 	extrasConfig := yaml.ConfigFile(extrasConfigFilepath)
 
 	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
-	output, err := playlist.Make()
+	outfile, err := playlist.Make()
 	if err != nil {
 		log.Fatalf("Could not make playlist. %v", err)
 	}
-	log.Printf("%T", output)
+	log.Printf("Outputted playlist to %s", outfile.Name())
 
-	fmt.Println("Done.")
+	log.Println("Done.")
 }

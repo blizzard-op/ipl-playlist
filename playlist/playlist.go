@@ -90,6 +90,8 @@ func (p *Playlist) availableDuration() float64 {
 }
 
 func (p *Playlist) ArrangedItems() []*PlaylistBlock {	
+	fmt.Printf("Target duration: %s\n", p.EndsAt.Sub(p.StartsAt).String())
+
 	d := int(p.availableDuration())
 
 	var items []*PlaylistBlock
@@ -115,7 +117,7 @@ func (p *Playlist) ArrangedItems() []*PlaylistBlock {
 		}
 
 		if ( block != nil ) {
-			fmt.Printf("Available=%d; Arranging %s [%ds]\n", d, block.Title, block.Duration)
+			fmt.Printf("Available=%ds; Arranging %s [%ds]\n", d, block.Title, block.Duration)
 			items = append(items, block)
 			d -= block.Duration
 		}
@@ -147,7 +149,7 @@ func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, du
 }
 
 func (p *Playlist) Make() (*os.File, error) {
-	log.Printf("Making playlist...")
+	fmt.Printf("Making playlist...\n")
 
 	items := p.ArrangedItems()
 	tracks := make([]XspfTrack, 0)
@@ -246,7 +248,7 @@ func (b *PlaylistBlock) GetDuration() int {
 
 		cleanup(output_filepath)
 	}
-	fmt.Printf("%s [%ds]\n", b.Title, total)
+	fmt.Printf("Using %s [%ds]\n", b.Title, total)
 	return total
 }
 
