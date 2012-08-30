@@ -5,6 +5,7 @@ import (
 	"time"
 	"strconv"
 	"log"
+	"errors"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -28,42 +29,38 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File, xc yaml.File) *Pl
  	return p
 }
 
-func (p *Playlist) setItems( items *[]*PlaylistBlock, config yaml.File, key string ) {
-
+func validateItems(config yaml.File, key string) (yaml.List, error) {
 	node, err := yaml.Child( config.Root, key )
 	if err != nil {
-		log.Fatalf("No items. %v", err) // items node must be present
+		return nil, err
 	}
 	lst, ok := node.(yaml.List)
-	if !ok {
-		log.Fatalf("Invalid items. %v", err)
+	if (!ok || (lst.Len() <= 0)) {
+		return nil, errors.New("Invalid items")
 	}
-	count := lst.Len()
-	if (count <= 0) {
-		log.Fatalf("No items. %v", err) // items node must be a non-empty list
-	}
-	*items = make([]*PlaylistBlock, count)
+	return lst, nil
+}
 
-	// blocks
+func (p *Playlist) setItems( items *[]*PlaylistBlock, config yaml.File, key string ) {
+	lst, err := validateItems(config, key)
+	if( err != nil){
+		log.Fatalf("Failed items validation. %v", err)
+	}
+	*items = make([]*PlaylistBlock, lst.Len())
 	for i, e := range lst {
 		itemKey := key + "[" + strconv.Itoa(i) + "]"
-
 		title, err := config.Get(itemKey + ".title")
 		if (err != nil) {
 			log.Fatalf("Missing title.")
 		}
-
 		series, err := p.Config.Get(itemKey + ".series")
 		if (err != nil) {
 			series = ""
 		}
-
 		filepathsNode, err := yaml.Child( e, "filepaths" )
 		if err != nil {
 			log.Fatalf("Missing filepaths for %s.", title)
 		}
-
 		(*items)[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
 	}
-
 }
