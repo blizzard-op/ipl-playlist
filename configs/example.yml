@@ -1,3 +1,4 @@
+common_config_filepath: /Users/bennett/Code/ipl-playlist/configs/common.example.yml
 items:
  - title: Hyun vs Major
    series: IPL Fight Club

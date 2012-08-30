@@ -18,6 +18,7 @@ import (
 type Playlist struct {
 	StartsAt, EndsAt time.Time
 	Config yaml.File
+	CommonConfig *yaml.File
 	Items []*PlaylistBlock
 }
 
@@ -27,18 +28,25 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
  	p.EndsAt = e
  	p.Config = c
 
-	// items	
+ 	// common config
+ 	path, err := p.Config.Get("common_config_filepath")
+ 	if err != nil {
+		log.Fatalf("Missing common config. %v", err)
+	}
+ 	p.CommonConfig = yaml.ConfigFile(path)
+
+	// items
 	node, err := yaml.Child( p.Config.Root, "items" )
 	if err != nil {
-		panic(err) // items node must be present
+		log.Fatalf("No items. %v", err) // items node must be present
 	}
 	lst, ok := node.(yaml.List)
 	if !ok {
-		panic("Not a valid list of items.")
+		log.Fatalf("Invalid items. %v", err)
 	}
 	count := lst.Len()
 	if (count <= 0) {
-		panic("List of items is empty.") // items node must be a non-empty list
+		log.Fatalf("No items. %v", err) // items node must be a non-empty list
 	}
 	p.Items = make([]*PlaylistBlock, count)
 
@@ -48,17 +56,17 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 
 		title, err := p.Config.Get(itemKey + ".title")
 		if (err != nil) {
-			panic(err)
+			log.Fatalf("Missing title.")
 		}
 
 		series, err := p.Config.Get(itemKey + ".series")
 		if (err != nil) {
-			panic(err)
+			log.Fatalf("Missing series for %s.", title)
 		}
 
 		filepathsNode, err := yaml.Child( e, "filepaths" )
 		if err != nil {
-			panic(err)
+			log.Fatalf("Missing filepaths for %s.", title)
 		}
 
 		p.Items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
@@ -85,9 +93,62 @@ type XspfTrack struct {
 	Location string `xml:"location"`
 }
 
+func (p *Playlist) availableDuration() float64 {
+	return p.EndsAt.Sub(p.StartsAt).Seconds()
+}
+
+func (p *Playlist) ArrangedItems() {
+	d := int(p.availableDuration())
+	log.Printf("availableDuration: %d seconds", d)
+
+	i := 0
+	var block *PlaylistBlock
+	for {
+		// less than 1 minute of available duration left
+		if d < 60 {
+			break
+		}
+
+		block = p.nextBlockToFill(i, d)
+		if block == nil {
+			log.Printf("No block available to fill. duration=%d", d)
+			break
+		}
+		fmt.Printf("Available=%d\n\tArranging %s [%ds]\n", d, block.Title, block.Duration)
+		d -= block.Duration
+		i += 1
+
+		if i >= len(p.Items) {
+			i = 0
+		}
+	}
+	return
+}
+
+func (p *Playlist) nextBlockToFill(startingIndex int, duration int) *PlaylistBlock {
+	i := startingIndex
+	for {
+		block := p.Items[i]
+		if block.Duration <= duration {
+			return block
+		}
+		i += 1
+
+		if i >= len(p.Items) {
+			i = 0
+		}
+
+		if i == startingIndex {
+			break
+		}
+	}
+	return nil
+}
+
 func (p *Playlist) Make() (*os.File, error) {
 	log.Printf("Making playlist...")
-	log.Printf("total = %d", p.TotalItems())
+
+	p.ArrangedItems()
 
 	tracks := make([]XspfTrack, p.TotalItems())
 	index := 0
@@ -105,20 +166,19 @@ func (p *Playlist) Make() (*os.File, error) {
 	    log.Fatalf("xml.MarshalIndent: %v", err)
 	}
 
-	// create file
+	// create
 	output, err := os.Create("out.xspf")
 	if err != nil {
 	    log.Fatalf("os.Create: %v", err)
 	}
 
-	// write file
-	bytesWritten, err := output.Write( []byte(xml.Header + string(xmlstring)) )
+	// write
+	_, err = output.Write( []byte(xml.Header + string(xmlstring)) )
 	if err != nil {
 	    log.Fatalf("output.Write: %v", err)
 	}
-	log.Printf("bytesWritten: %d", bytesWritten)
 
-	// close file
+	// close
 	err = output.Close()
 	if err != nil {
 	    log.Fatalf("output.Close: %v", err)
@@ -141,13 +201,13 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 	b.Series = s
 	count := filepaths.Len()
 	if (count <= 0) {
-		panic("List of filepaths is empty.")
+		log.Fatalf("No filepaths for %s.", t)
 	}	
 	b.Items = make([]*os.File, count)
 	for i, e := range filepaths {
 		f, err := os.Open(e.(yaml.Scalar).String())
 		if err != nil {
-			panic(err)
+			log.Fatalf("Missing file for %s.", t)
 		}
 		b.Items[i] = f
 	}
@@ -162,7 +222,6 @@ func (b *PlaylistBlock) GetDuration() int {
 	output_filepath := "tmp.flv"
 	cleanup(output_filepath)
 
-	// Duration: 00:08:59.66
 	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
 	if err != nil {
 		log.Fatalf("regexp.Compile: %v", err)
@@ -170,22 +229,16 @@ func (b *PlaylistBlock) GetDuration() int {
 
 	for _, f := range b.Items {
 		path := f.Name()
-		log.Printf("Getting duration for %s", path)
-
 		cmd := exec.Command("ffmpeg", "-i", path, "-c", "copy", "-t", "1", output_filepath) // hack to get zero exit code
-
 		stdout, er := cmd.CombinedOutput()
 		if er != nil {
 			log.Fatalf("cmd.CombinedOutput: %v", er)
 		}
 
-		//log.Printf("output: %s", stdout)
-
 		result := exp.FindSubmatch(stdout)
 		if result == nil {
 			log.Fatalf("Could not determine duration")
 		}
-		log.Printf("%s", result)
 		parts := strings.Split(string(result[1]), ":")
 		for i, part := range parts {
 			x, _ := strconv.Atoi(part)
@@ -193,7 +246,6 @@ func (b *PlaylistBlock) GetDuration() int {
 			total = total + val
 		}
 
-		// cleanup
 		cleanup(output_filepath)
 	}
 
