@@ -27,7 +27,7 @@ func init() {
 	now := time.Now()
 	flag.StringVar(&franchiseName, "franchise", "StarCraft 2", "Name of franchise. Default is StarCraft 2.")
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
-	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 4).Format(timeFormat), "End time. Default is 24 hours from now.")
+	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour * 5).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
 	flag.StringVar(&extrasConfigFilepath, "extras", "config.yml", "Extras config filepath. Default is './config.yml.'")
 	flag.Parse() // parses the flags

@@ -97,43 +97,53 @@ func (p *Playlist) availableDuration() float64 {
 	return p.EndsAt.Sub(p.StartsAt).Seconds()
 }
 
-func (p *Playlist) ArrangedItems() {
+func (p *Playlist) ArrangedItems() []*PlaylistBlock {
 	d := int(p.availableDuration())
 
-	i := 0
+	var items []*PlaylistBlock
 	var block *PlaylistBlock
+	var i, primaryIndex, extrasIndex int
 	for {		
 		if d < 60 {
 			break // less than 1 minute of available duration left
 		}
 
-		block = p.nextBlockToFill(i, d)
-		if block == nil {
-			log.Printf("No block available to fill. duration=%d", d)
-			break
+		if (math.Mod(float64(i), float64(2)) == 0) {
+			block = p.nextBlockToFill(p.Items, primaryIndex, d)
+			primaryIndex += 1
+			if (primaryIndex >= len(p.Items)) {
+				primaryIndex = 0
+			}
+		} else {
+			block = p.nextBlockToFill(p.ExtraItems, extrasIndex, d)
+			extrasIndex += 1
+			if (extrasIndex >= len(p.ExtraItems)) {
+				extrasIndex = 0
+			}
 		}
-		fmt.Printf("Available=%d; Arranging %s [%ds]\n", d, block.Title, block.Duration)
-		d -= block.Duration
-		i += 1
 
-		if i >= len(p.Items) {
-			i = 0
+		if ( block != nil ) {
+			fmt.Printf("Available=%d; Arranging %s [%ds]\n", d, block.Title, block.Duration)
+			items = append(items, block)
+			d -= block.Duration
 		}
+		
+		i += 1
 	}
-	fmt.Printf("Leftover duration: %ds\n", d)
-	return
+	fmt.Printf("Total items: %d\nLeftover duration: %ds\n", len(items), d)
+	return items
 }
 
-func (p *Playlist) nextBlockToFill(startingIndex int, duration int) *PlaylistBlock {
+func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, duration int) *PlaylistBlock {
 	i := startingIndex
 	for {
-		block := p.Items[i]
+		block := items[i]
 		if block.Duration <= duration {
 			return block
 		}
 		i += 1
 
-		if i >= len(p.Items) {
+		if i >= len(items) {
 			i = 0
 		}
 
@@ -246,7 +256,7 @@ func (b *PlaylistBlock) GetDuration() int {
 
 		cleanup(output_filepath)
 	}
-
+	fmt.Printf("%s [%ds]\n", b.Title, total)
 	return total
 }
 
