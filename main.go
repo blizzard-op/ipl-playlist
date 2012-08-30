@@ -54,7 +54,7 @@ func main() {
 	extrasConfig := yaml.ConfigFile(extrasConfigFilepath)
 
 	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
-	outfile, err := playlist.Make()
+	outfile, err := playlist.Output()
 	if err != nil {
 		log.Fatalf("Could not make playlist. %v", err)
 	}

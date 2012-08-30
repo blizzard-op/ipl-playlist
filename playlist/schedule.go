@@ -3,10 +3,8 @@ package playlist
 import (
 	"fmt"
 	"os"
-	"log"
 	"math"
 	"time"
-	"encoding/xml"
 )
 
 func (p *Playlist) availableDuration() time.Duration {
@@ -58,11 +56,9 @@ func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, du
 			return block
 		}
 		i += 1
-
 		if i >= len(items) {
 			i = 0
 		}
-
 		if i == startingIndex {
 			break
 		}
@@ -70,42 +66,15 @@ func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, du
 	return nil
 }
 
-func (p *Playlist) Make() (*os.File, error) {
-	fmt.Printf("Making playlist...\n")
-
+func (p *Playlist) Output() (*os.File, error) {
+	fmt.Printf("Outputting playlist...\n")
 	items := p.ArrangedItems()
 	tracks := make([]XspfTrack, 0)
-
 	for _, block := range items {
 		for _, item := range block.Items {
 			tracks = append(tracks, XspfTrack{Location: "file://" + item.Name()})
 		}
 	}
-
-	xspfPlaylist := &XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
-
-	xmlstring, err := xml.MarshalIndent(xspfPlaylist, "", "    ")
-	if err != nil {
-	    log.Fatalf("xml.MarshalIndent: %v", err)
-	}
-
-	// create
-	output, err := os.Create("out.xspf")
-	if err != nil {
-	    log.Fatalf("os.Create: %v", err)
-	}
-
-	// write
-	_, err = output.Write( []byte(xml.Header + string(xmlstring)) )
-	if err != nil {
-	    log.Fatalf("output.Write: %v", err)
-	}
-
-	// close
-	err = output.Close()
-	if err != nil {
-	    log.Fatalf("output.Close: %v", err)
-	}
-
-	return output, err
+	x := XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
+	return x.Output()
 }
