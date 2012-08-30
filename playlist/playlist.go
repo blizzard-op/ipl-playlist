@@ -28,12 +28,20 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
  	p.EndsAt = e
  	p.Config = c
 
- 	// common config
+ 	// common items
  	path, err := p.Config.Get("common_config_filepath")
  	if err != nil {
 		log.Fatalf("Missing common config. %v", err)
 	}
  	p.CommonConfig = yaml.ConfigFile(path)
+ 	commonItemsNode, err := yaml.Child( p.CommonConfig.Root, "items" )
+	if err != nil {
+		log.Fatalf("No items. %v", err) // items node must be present
+	}
+	common_lst, ok := commonItemsNode.(yaml.List)
+	if !ok {
+		log.Fatalf("Invalid common items. %v", err)
+	}
 
 	// items
 	node, err := yaml.Child( p.Config.Root, "items" )
@@ -44,7 +52,9 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 	if !ok {
 		log.Fatalf("Invalid items. %v", err)
 	}
-	count := lst.Len()
+
+	// combined items
+	count := lst.Len() + common_lst.Len()
 	if (count <= 0) {
 		log.Fatalf("No items. %v", err) // items node must be a non-empty list
 	}
@@ -71,6 +81,24 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File) *Playlist {
 
 		p.Items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
 	}
+
+	// common blocks
+	for i, e := range common_lst {
+		itemKey := "items[" + strconv.Itoa(i) + "]"
+
+		title, err := p.CommonConfig.Get(itemKey + ".title")
+		if (err != nil) {
+			log.Fatalf("Missing title.")
+		}
+
+		filepathsNode, err := yaml.Child( e, "filepaths" )
+		if err != nil {
+			log.Fatalf("Missing filepaths for %s.", title)
+		}
+
+		p.Items[i + lst.Len()] = new(PlaylistBlock).Init(title, "", filepathsNode.(yaml.List))
+	}
+
  	return p
 }
 
@@ -99,7 +127,6 @@ func (p *Playlist) availableDuration() float64 {
 
 func (p *Playlist) ArrangedItems() {
 	d := int(p.availableDuration())
-	log.Printf("availableDuration: %d seconds", d)
 
 	i := 0
 	var block *PlaylistBlock
@@ -196,7 +223,6 @@ type PlaylistBlock struct {
 }
 
 func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistBlock {
-	log.Printf("Initializing block for %s", t)
 	b.Title = t
 	b.Series = s
 	count := filepaths.Len()
@@ -219,7 +245,7 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 func (b *PlaylistBlock) GetDuration() int {
 	total := 0
 
-	output_filepath := "tmp.flv"
+	output_filepath := "tmp.flv" // TODO adapt to original file suffix
 	cleanup(output_filepath)
 
 	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
@@ -249,7 +275,6 @@ func (b *PlaylistBlock) GetDuration() int {
 		cleanup(output_filepath)
 	}
 
-	log.Printf("total: %d", total)
 	return total
 }
 

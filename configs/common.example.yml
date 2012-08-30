@@ -1,3 +1,12 @@
 items:
- - filepaths:
+ - title: Ad 1
+   filepaths:
     - /Users/bennett/Code/ipl-playlist/assets/ads_1.flv
+
+ - title: Ad 2
+   filepaths:
+    - /Users/bennett/Code/ipl-playlist/assets/ads_2.flv
+
+ - title: Ad 3
+   filepaths:
+    - /Users/bennett/Code/ipl-playlist/assets/ads_3.flv
