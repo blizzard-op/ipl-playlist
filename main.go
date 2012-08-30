@@ -5,7 +5,7 @@ import (
 	"time"
 	"os/exec"
 	"log"
-	playlist "./playlist"
+	playlist "github.com/ign/ipl-playlist/playlist"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
