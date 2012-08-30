@@ -36,21 +36,17 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistB
 		b.Items[i] = f
 	}
 	b.Duration = b.GetDuration()
-
 	return b
 }
 
 func (b *PlaylistBlock) GetDuration() int {
 	total := 0
-
 	output_filepath := "tmp.flv" // TODO adapt to original file suffix
 	cleanup(output_filepath)
-
 	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
 	if err != nil {
 		log.Fatalf("regexp.Compile: %v", err)
 	}
-
 	for _, f := range b.Items {
 		path := f.Name()
 		cmd := exec.Command("ffmpeg", "-i", path, "-c", "copy", "-t", "1", output_filepath) // hack to get zero exit code
@@ -58,7 +54,6 @@ func (b *PlaylistBlock) GetDuration() int {
 		if er != nil {
 			log.Fatalf("cmd.CombinedOutput: %v", er)
 		}
-
 		result := exp.FindSubmatch(stdout)
 		if result == nil {
 			log.Fatalf("Could not determine duration")
@@ -69,7 +64,6 @@ func (b *PlaylistBlock) GetDuration() int {
 			val := int( math.Pow(60, float64(len(parts[i+1:]))) ) * x
 			total = total + val
 		}
-
 		cleanup(output_filepath)
 	}
 	fmt.Printf("Using %s [%ds]\n", b.Title, total)
