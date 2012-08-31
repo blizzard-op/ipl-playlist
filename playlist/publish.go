@@ -7,7 +7,13 @@ import (
 func (p *Playlist) Publish(items []*PlaylistBlock) () {
 	fmt.Println("Publishing playlist...")
 	for _, block := range items {
-		fmt.Printf("Publishing %s %v\n", block.Title, block.Publish)
+		if( block.DoPublish ){			
+			block.Publish()
+		}
 	}
 	return
+}
+
+func (block *PlaylistBlock) Publish() {
+	fmt.Printf("Publishing %s...\n", block.Title)
 }
