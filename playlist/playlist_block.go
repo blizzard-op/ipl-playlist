@@ -18,11 +18,13 @@ type PlaylistBlock struct {
 	Series string
 	Items []*os.File
 	Duration int
+	Publish bool
 }
 
-func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List) *PlaylistBlock {
+func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List, u bool) *PlaylistBlock {
 	b.Title = t
 	b.Series = s
+	b.Publish = u
 	count := filepaths.Len()
 	if (count <= 0) {
 		log.Fatalf("No filepaths for %s.", t)

@@ -38,7 +38,11 @@ func getItems(config yaml.File, key string) ([]*PlaylistBlock, error){
 		if err != nil {
 			return nil, errors.New("Missing filepaths for " + title)
 		}
-		items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List))
+		publish := true
+		if (key == "extras") {
+			publish = false
+		}
+		items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List), publish)
 	}
 	return items, nil
 }
