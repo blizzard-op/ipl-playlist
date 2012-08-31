@@ -35,9 +35,8 @@ func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File, xc yaml.File) *Pl
  	return p
 }
 
-func (p *Playlist) Output() (*os.File, error) {
+func OutputPlaylist(items []*PlaylistBlock) (*os.File, error) {
 	fmt.Println("Outputting playlist...")
-	items := p.ArrangedItems()
 	tracks := make([]XspfTrack, 0)
 	for _, block := range items {
 		for _, item := range block.Items {

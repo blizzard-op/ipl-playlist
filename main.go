@@ -53,12 +53,14 @@ func main() {
 	config := yaml.ConfigFile(configFilepath)
 	extrasConfig := yaml.ConfigFile(extrasConfigFilepath)
 
-	playlist := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
-	outfile, err := playlist.Output()
+	p := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
+	items := p.ArrangedItems()
+	outfile, err := playlist.OutputPlaylist(items)
 	if err != nil {
 		log.Fatalf("Could not make playlist. %v", err)
 	}
 	log.Printf("Outputted playlist to %s", outfile.Name())
+	p.Publish(items)
 
 	log.Println("Done.")
 }
