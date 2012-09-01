@@ -11,7 +11,7 @@ import (
 
 const timeFormat = time.RFC3339
 
-var franchiseName string; // name of franchise
+var calendarName string; // name of Google Calendar channel
 
 var startsAt time.Time; // time to start
 var startsAtTime string;
@@ -24,7 +24,7 @@ var extrasConfigFilepath string;
 
 func init() {
 	now := time.Now()
-	flag.StringVar(&franchiseName, "franchise", "StarCraft 2", "Name of franchise. Default is StarCraft 2.")
+	flag.StringVar(&calendarName, "calendar", "ignproleague_dev", "Name of channel. Default is ignproleague_dev.")
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
 	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour*24).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
@@ -60,7 +60,7 @@ func main() {
 		log.Fatalf("Could not make playlist. %v", err)
 	}
 	log.Printf("Outputted playlist to %s", outfile.Name())
-	p.Publish(items)
+	p.Publish(calendarName, items)
 
 	log.Println("Done.")
 }

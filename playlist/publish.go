@@ -4,16 +4,16 @@ import (
 	"fmt"
 )
 
-func (p *Playlist) Publish(items []*PlaylistBlock) () {
-	fmt.Println("Publishing playlist...")
+func (p *Playlist) Publish(calendarName string, items []*PlaylistBlock) () {
+	fmt.Println("Publishing playlist to ")
 	for _, block := range items {
 		if( block.DoPublish ){			
-			block.Publish()
+			block.Publish(calendarName)
 		}
 	}
 	return
 }
 
-func (block *PlaylistBlock) Publish() {
-	fmt.Printf("Publishing %s...\n", block.Title)
+func (block *PlaylistBlock) Publish(calendarName string) {
+	fmt.Printf("Publishing %s to %s\n", block.Title, calendarName)
 }
