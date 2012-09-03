@@ -22,6 +22,9 @@ var endsAtTime string;
 var configFilepath string;
 var extrasConfigFilepath string;
 
+var skipPublish bool;
+var skipOutput bool;
+
 func init() {
 	now := time.Now()
 	flag.StringVar(&calendarName, "calendar", "ignproleague_dev", "Name of channel. Default is ignproleague_dev.")
@@ -29,6 +32,8 @@ func init() {
 	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour*2 + time.Minute*1).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
 	flag.StringVar(&extrasConfigFilepath, "extras", "config.yml", "Extras config filepath. Default is './config.yml.'")
+	flag.BoolVar(&skipPublish, "skipPublish", false, "Skip publishing. Default is false.")
+	flag.BoolVar(&skipOutput, "skipOutput", false, "Skip output file. Default is false.")
 	flag.Parse() // parses the flags
 	parseTimeVar(timeFormat, startsAtTime, &startsAt) // parse startsAt
 	parseTimeVar(timeFormat, endsAtTime, &endsAt) // parse endsAt
@@ -57,23 +62,30 @@ func main() {
 	log.Println("Scheduling playlist...")
 	scheduledBlocks := p.ScheduledBlocks()
 
-	log.Println("Outputting playlist...")
-	tracks := make([]playlist.XspfTrack, 0)
-	for _, scheduleBlock := range scheduledBlocks {
-		for _, item := range scheduleBlock.Block.Items {
-			tracks = append(tracks, playlist.XspfTrack{Location: "file://" + item.Name()})
+	if (!skipOutput){
+		// output playlist
+		log.Println("Outputting playlist...")
+		tracks := make([]playlist.XspfTrack, 0)
+		for _, scheduleBlock := range scheduledBlocks {
+			for _, item := range scheduleBlock.Block.Items {
+				tracks = append(tracks, playlist.XspfTrack{Location: "file://" + item.Name()})
+			}
 		}
-	}
-	xspf := playlist.XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
-	outfile, err := xspf.Output()
-	if err != nil {
-		log.Fatal("Could not make playlist. %v", err)
-	}
-	log.Printf("Outputted playlist to %s", outfile.Name())
-	ok, err := p.Publish(calendarName, scheduledBlocks)
-	if( err != nil ){
-		log.Fatal("Could not publish playlist.\n%v", err)
+		xspf := playlist.XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
+		outfile, err := xspf.Output()
+		if err != nil {
+			log.Fatal("Could not make playlist. %v", err)
+		}
+		log.Println("Done. Outputted playlist to ", outfile.Name())
 	}
 
-	log.Println("Done. ", ok)
+	if (!skipPublish){
+		// publish playlist
+		ok, err := p.Publish(calendarName, scheduledBlocks)
+		if( err != nil ){
+			log.Fatal("Could not publish playlist.\n%v", err)
+		}
+		log.Println("Done. Published playlist. ", ok)
+	}
+	
 }
