@@ -10,15 +10,15 @@ import (
 	"encoding/json"
 )
 
-func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string, error) {
-	log.Printf("Publishing playlist to %s\n", calendarName)
+func (p *Playlist) Publish(calendar *Calendar, items []ScheduledBlock) (string, error) {
+	log.Printf("Publishing playlist to %s\n", calendar.Name)
 	token, err := RefreshAccessToken()
 	if (err != nil){
 		return "", err
 	}
 	for _, scheduledBlock := range items {
 		if( scheduledBlock.Block.DoPublish ){			
-			resp, err := scheduledBlock.Publish(calendarName, token)
+			resp, err := scheduledBlock.Publish(calendar, token)
 			if (err != nil){
 				return "", err
 			}
@@ -36,11 +36,10 @@ func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string,
 	return "ok", nil
 }
 
-func (scheduledBlock ScheduledBlock) Publish(calendarName string, accessToken string) ([]byte, error){
-	log.Printf("Publishing %s to %s at %s\n", scheduledBlock.Block.Title, calendarName, scheduledBlock.Start.DateTime)
-	calendar := Calendar{ `fh2cbs3kr39l29itsq0l7s4rig@group.calendar.google.com`, calendarName }
+func (scheduledBlock ScheduledBlock) Publish(calendar *Calendar, accessToken string) ([]byte, error){
+	log.Printf("Publishing %s to %s at %s\n", scheduledBlock.Block.Title, calendar.Name, scheduledBlock.Start.DateTime)
 	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, "Series: " + scheduledBlock.Block.Series }
-	return event.Publish(&calendar, accessToken)
+	return event.Publish(calendar, accessToken)
 }
 
 func RefreshAccessToken() (string, error) {

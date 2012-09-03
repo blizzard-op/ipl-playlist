@@ -12,6 +12,9 @@ import (
 const timeFormat = time.RFC3339
 
 var calendarName string; // name of Google Calendar channel
+var calendarId string;
+var calendarConfig *yaml.File
+var calendar playlist.Calendar
 
 var startsAt time.Time; // time to start
 var startsAtTime string;
@@ -37,6 +40,12 @@ func init() {
 	flag.Parse() // parses the flags
 	parseTimeVar(timeFormat, startsAtTime, &startsAt) // parse startsAt
 	parseTimeVar(timeFormat, endsAtTime, &endsAt) // parse endsAt
+	calendarConfig = yaml.ConfigFile("configs/google_calendar_api.yml")
+	calendarId, err := calendarConfig.Get("calendars." + calendarName + ".id")
+	if err != nil {
+        log.Fatalf("No matching calendar id for %s %v", calendarName, err)
+    }
+    calendar = playlist.Calendar{ Id: calendarId, Name: calendarName}
 }
 
 func parseTimeVar(format string, value string, ptr *time.Time) {
@@ -81,7 +90,7 @@ func main() {
 
 	if (!skipPublish){
 		// publish playlist
-		ok, err := p.Publish(calendarName, scheduledBlocks)
+		ok, err := p.Publish(&calendar, scheduledBlocks)
 		if( err != nil ){
 			log.Fatal("Could not publish playlist.\n%v", err)
 		}
