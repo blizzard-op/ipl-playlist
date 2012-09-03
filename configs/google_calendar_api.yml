@@ -1,0 +1,17 @@
+scope: https://www.googleapis.com/auth/calendar
+key: AIzaSyDB-83UlaVu-YL1MDLaUs2frIug2xn_XaQ
+client:
+ id: 404966439763-uv5escoh0lqf7itsp1ifsuvtkjuv9eu9.apps.googleusercontent.com
+ email: 404966439763-uv5escoh0lqf7itsp1ifsuvtkjuv9eu9@developer.gserviceaccount.com
+ secret: H7c2qB_YuB6CWKcPg9img88R
+ code: 4/DQEm2o6OeFlTJsP06iUXd8o068IT.8iq2F4B70VAZuJJVnL49Cc9Y2ZB0cAI
+ refresh_token: 1/LxxA16-YwWspGM1iXoDqhKFSKNN0BzWm1zkZYKRIQt4
+calendars:
+ ignproleague_dev:
+  id: fh2cbs3kr39l29itsq0l7s4rig@group.calendar.google.com
+ ipllol_dev:
+  id: higmoej8a9p6nkervv0c57pa40@group.calendar.google.com
+ ignproleague:
+  id: 1u5m1559a5rlih3tr8jqp4kgac@group.calendar.google.com
+ ipllol:
+  id: igpia9kc2fst1ijkde1avplkq0@group.calendar.google.com

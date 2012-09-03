@@ -12,16 +12,7 @@ import (
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
-// A PlaylistBlock is a description of a set of related media files to keep grouped together.
-type PlaylistBlock struct {
-	Title string
-	Series string
-	Items []*os.File
-	Duration int
-	DoPublish bool
-}
-
-func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List, u bool) *PlaylistBlock {
+func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *AvailableBlock {
 	b.Title = t
 	b.Series = s
 	b.DoPublish = u
@@ -41,7 +32,7 @@ func (b *PlaylistBlock) Init(t string, s string, filepaths yaml.List, u bool) *P
 	return b
 }
 
-func (b *PlaylistBlock) GetDuration() int {
+func (b *AvailableBlock) GetDuration() int {
 	total := 0
 	output_filepath := "tmp.flv" // TODO adapt to original file suffix
 	cleanup(output_filepath)

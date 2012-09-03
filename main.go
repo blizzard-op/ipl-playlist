@@ -54,13 +54,23 @@ func main() {
 	extrasConfig := yaml.ConfigFile(extrasConfigFilepath)
 
 	p := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
-	items := p.ArrangedItems()
-	outfile, err := playlist.OutputPlaylist(items)
+	scheduledBlocks := p.ScheduledBlocks()
+
+	log.Println("Outputting playlist...")
+	tracks := make([]playlist.XspfTrack, 0)
+	for _, scheduleBlock := range scheduledBlocks {
+		for _, item := range scheduleBlock.Block.Items {
+			tracks = append(tracks, playlist.XspfTrack{Location: "file://" + item.Name()})
+		}
+	}
+	xspf := playlist.XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
+	outfile, err := xspf.Output()
+
 	if err != nil {
 		log.Fatalf("Could not make playlist. %v", err)
 	}
 	log.Printf("Outputted playlist to %s", outfile.Name())
-	p.Publish(calendarName, items)
+	p.Publish(calendarName, scheduledBlocks)
 
 	log.Println("Done.")
 }

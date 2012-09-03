@@ -18,12 +18,12 @@ func validateItems(config yaml.File, key string) (yaml.List, error) {
 	return lst, nil
 }
 
-func getItems(config yaml.File, key string) ([]*PlaylistBlock, error){
+func getItems(config yaml.File, key string) ([]*AvailableBlock, error){
 	lst, err := validateItems(config, key)
 	if( err != nil){
 		return nil, errors.New("Invalid items")
 	}
-	items := make([]*PlaylistBlock, lst.Len())
+	items := make([]*AvailableBlock, lst.Len())
 	for i, e := range lst {
 		itemKey := key + "[" + strconv.Itoa(i) + "]"
 		title, err := config.Get(itemKey + ".title")
@@ -42,7 +42,7 @@ func getItems(config yaml.File, key string) ([]*PlaylistBlock, error){
 		if (key == "extras") {
 			publish = false
 		}
-		items[i] = new(PlaylistBlock).Init(title, series, filepathsNode.(yaml.List), publish)
+		items[i] = new(AvailableBlock).Init(title, series, filepathsNode.(yaml.List), publish)
 	}
 	return items, nil
 }

@@ -10,13 +10,15 @@ func (p *Playlist) availableDuration() time.Duration {
 	return p.EndsAt.Sub(p.StartsAt)
 }
 
-func (p *Playlist) ArrangedItems() []*PlaylistBlock {	
+func (p *Playlist) ScheduledBlocks() []ScheduledBlock {	
 	fmt.Printf("Target duration: %s\n", p.availableDuration().String())
 	d := int(p.availableDuration().Seconds())
-	var items []*PlaylistBlock
-	var block *PlaylistBlock
+	var start, end time.Time
+	var items []ScheduledBlock
+	var block *AvailableBlock
 	var i, primaryIndex, extrasIndex int
-	for {		
+	start = p.StartsAt
+	for {
 		if d < 60 {
 			break // less than 1 minute of available duration left
 		}
@@ -35,19 +37,21 @@ func (p *Playlist) ArrangedItems() []*PlaylistBlock {
 			}
 		}
 
-		if ( block != nil ) {
-			fmt.Printf("Available=%ds; Arranging %s [%ds]\n", d, block.Title, block.Duration)
-			items = append(items, block)
+		if (block != nil) {
+			fmt.Printf("Available=%ds; Scheduling %s [%ds] at %s\n", d, block.Title, block.Duration, start)
+			end = start.Add(time.Duration(block.Duration) * time.Second)
+			items = append(items, ScheduledBlock{block, CalendarTime{start}, CalendarTime{end}})
 			d -= block.Duration
+			start = end
 		}
 		
 		i += 1
 	}
-	fmt.Printf("Total items arranged: %d\n%ds out of %ds remaining\n", len(items), d, int(p.availableDuration()))
+	fmt.Printf("Total items scheduled: %d\n%ds out of %ds remaining\n", len(items), d, int(p.availableDuration().Seconds()))
 	return items
 }
 
-func (p *Playlist) nextBlockToFill(items []*PlaylistBlock, startingIndex int, duration int) *PlaylistBlock {
+func (p *Playlist) nextBlockToFill(items []*AvailableBlock, startingIndex int, duration int) *AvailableBlock {
 	i := startingIndex
 	for {
 		block := items[i]
