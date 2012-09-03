@@ -47,7 +47,7 @@ func main() {
 
 	_, err := exec.LookPath("ffmpeg")
 	if err != nil {
-		log.Fatalf("Could not find ffmpeg.")
+		log.Fatal("Could not find ffmpeg.")
 	}
 
 	config := yaml.ConfigFile(configFilepath)
@@ -65,12 +65,14 @@ func main() {
 	}
 	xspf := playlist.XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
 	outfile, err := xspf.Output()
-
 	if err != nil {
-		log.Fatalf("Could not make playlist. %v", err)
+		log.Fatal("Could not make playlist. %v", err)
 	}
 	log.Printf("Outputted playlist to %s", outfile.Name())
-	p.Publish(calendarName, scheduledBlocks)
+	ok, err := p.Publish(calendarName, scheduledBlocks)
+	if( err != nil ){
+		log.Fatal("Could not publish playlist.\n%v", err)
+	}
 
-	log.Println("Done.")
+	log.Println("Done. ", ok)
 }

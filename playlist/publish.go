@@ -17,7 +17,6 @@ func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string,
 	if (err != nil){
 		return "", err
 	}
-	fmt.Println("token = ", token)
 	for _, scheduledBlock := range items {
 		if( scheduledBlock.Block.DoPublish ){			
 			resp, err := scheduledBlock.Publish(calendarName, token)

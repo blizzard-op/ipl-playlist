@@ -8,7 +8,7 @@ import (
 )
 
 func (p *Playlist) Init(s time.Time, e time.Time, c yaml.File, xc yaml.File) *Playlist {
- 	fmt.Println("Initializing playlist...")
+ 	log.Println("Initializing playlist...")
  	p.StartsAt = s
  	p.EndsAt = e
  	p.Config = c
