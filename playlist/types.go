@@ -31,10 +31,6 @@ type ScheduledBlock struct {
  	End CalendarTime
 }
 
-// type ScheduledTime struct {
-// 	DateTime time.Time
-// }
-
 type XspfPlaylist struct {
     XMLName xml.Name `xml:"playlist"`
     Version string `xml:"version,attr"`

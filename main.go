@@ -54,6 +54,7 @@ func main() {
 	extrasConfig := yaml.ConfigFile(extrasConfigFilepath)
 
 	p := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
+	log.Println("Scheduling playlist...")
 	scheduledBlocks := p.ScheduledBlocks()
 
 	log.Println("Outputting playlist...")

@@ -11,7 +11,7 @@ func (p *Playlist) availableDuration() time.Duration {
 }
 
 func (p *Playlist) ScheduledBlocks() []ScheduledBlock {	
-	fmt.Printf("Target duration: %s\n", p.availableDuration().String())
+	fmt.Println("Target duration: ", p.availableDuration().String())
 	d := int(p.availableDuration().Seconds())
 	var start, end time.Time
 	var items []ScheduledBlock
