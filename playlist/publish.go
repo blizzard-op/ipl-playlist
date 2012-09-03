@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	//"strconv"
+	"errors"
 	"io/ioutil"
 	"log"
 	"bytes"
@@ -29,12 +29,10 @@ func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string,
 			if (err != nil){
 				return "", err
 			}
-			//m := publishResponse.(map[string]interface{})
-			// code := m["error"]["code"].(int)
-			// fmt.Printf("code: %d", code)
-			// if ( code != 200){
-			// 	return "", errors.New("Response Not OK")
-			// }
+			m := publishResponse.(map[string]interface{})
+			if ( m["error"] != nil){
+				return "", errors.New(string(resp))
+			}
 		}
 	}
 	return "ok", nil
@@ -43,7 +41,7 @@ func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string,
 func (scheduledBlock ScheduledBlock) Publish(calendarName string, accessToken string) ([]byte, error){
 	log.Printf("Publishing %s to %s at %s\n", scheduledBlock.Block.Title, calendarName, scheduledBlock.Start.DateTime)
 	calendar := Calendar{ `fh2cbs3kr39l29itsq0l7s4rig@group.calendar.google.com`, calendarName }
-	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, "foo 123" }
+	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, scheduledBlock.Block.Series }
 	return event.Publish(&calendar, accessToken)
 }
 
@@ -67,14 +65,12 @@ func RefreshAccessToken() (string, error) {
 }
 
 func (e *CalendarEvent) Publish(calendar *Calendar, accessToken string) ([]byte, error){
-	url := "https://www.googleapis.com/calendar/v3/calendars/" + calendar.Id + "/events?key=AIzaSyDB-83UlaVu-YL1MDLaUs2frIug2xn_XaQ"
-	fmt.Println("url: ", url)
+	url := "https://www.googleapis.com/calendar/v3/calendars/" + calendar.Id + "/events"
 	b, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
 	}
 	br := bytes.NewBuffer(b)
-	fmt.Println("b: ", br)
 	req, err := http.NewRequest("POST", url, br)
 	req.Header.Add("Authorization", "Bearer " + accessToken)
 	req.Header.Add("Content-Type", "application/json")
@@ -90,6 +86,5 @@ func (e *CalendarEvent) Publish(calendar *Calendar, accessToken string) ([]byte,
 	if (err != nil){
 		return nil, err
 	}
-	fmt.Printf("%s\n", body)
 	return body, nil
 }
