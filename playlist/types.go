@@ -31,9 +31,9 @@ type ScheduledBlock struct {
  	End CalendarTime
 }
 
-type ScheduledTime struct {
-	DateTime time.Time
-}
+// type ScheduledTime struct {
+// 	DateTime time.Time
+// }
 
 type XspfPlaylist struct {
     XMLName xml.Name `xml:"playlist"`
@@ -46,19 +46,18 @@ type XspfTrack struct {
 	Location string `xml:"location"`
 }
 
-// type Calendar struct {
-// 	Id string
-// 	Name string
-// }
-
-type CalendarTime struct {
-	DateTime time.Time
+type Calendar struct {
+	Id string
+	Name string
 }
 
-// type CalendarEvent struct {
-// 	Start CalendarTime
-// 	End CalendarTime
-// 	Summary string
-// 	Description string
-// 	Calendar *Calendar
-// }
+type CalendarTime struct {
+	DateTime time.Time `json:"dateTime"`
+}
+
+type CalendarEvent struct {
+	Start CalendarTime `json:"start"`
+	End CalendarTime `json:"end"`
+	Summary string `json:"summary"`
+	Description string `json:"description"`
+}

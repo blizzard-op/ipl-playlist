@@ -26,7 +26,7 @@ func init() {
 	now := time.Now()
 	flag.StringVar(&calendarName, "calendar", "ignproleague_dev", "Name of channel. Default is ignproleague_dev.")
 	flag.StringVar(&startsAtTime, "start", now.Format(timeFormat), "Start time. Default is now.")
-	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour*24).Format(timeFormat), "End time. Default is 24 hours from now.")
+	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour*2 + time.Minute*1).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
 	flag.StringVar(&extrasConfigFilepath, "extras", "config.yml", "Extras config filepath. Default is './config.yml.'")
 	flag.Parse() // parses the flags

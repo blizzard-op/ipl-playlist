@@ -2,85 +2,94 @@ package playlist
 
 import (
 	"fmt"
-	//"net/http"
-	//"net/url"
-	//"strings"
-	//"io/ioutil"
+	"net/http"
+	"net/url"
+	//"strconv"
+	"io/ioutil"
 	"log"
-	//"bytes"
-	//"time"
-	//"encoding/json"
+	"bytes"
+	"encoding/json"
 )
 
-func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) () {
+func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string, error) {
 	log.Printf("Publishing playlist to %s\n", calendarName)
 	token, err := RefreshAccessToken()
 	if (err != nil){
-		log.Fatal("Unable to obtain access token ", err)
+		return "", err
 	}
-	fmt.Printf("token: %s\n", token)
+	fmt.Println("token = ", token)
 	for _, scheduledBlock := range items {
 		if( scheduledBlock.Block.DoPublish ){			
-			scheduledBlock.Publish(calendarName, token)
+			resp, err := scheduledBlock.Publish(calendarName, token)
+			if (err != nil){
+				return "", err
+			}
+			var publishResponse interface{}
+			err = json.Unmarshal(resp, &publishResponse)
+			if (err != nil){
+				return "", err
+			}
+			//m := publishResponse.(map[string]interface{})
+			// code := m["error"]["code"].(int)
+			// fmt.Printf("code: %d", code)
+			// if ( code != 200){
+			// 	return "", errors.New("Response Not OK")
+			// }
 		}
 	}
-	return
+	return "ok", nil
 }
 
-func (scheduledBlock ScheduledBlock) Publish(calendarName string, accessToken string) (string){
+func (scheduledBlock ScheduledBlock) Publish(calendarName string, accessToken string) ([]byte, error){
 	log.Printf("Publishing %s to %s at %s\n", scheduledBlock.Block.Title, calendarName, scheduledBlock.Start.DateTime)
-	//event := CalendarEvent{}
-	return accessToken
+	calendar := Calendar{ `fh2cbs3kr39l29itsq0l7s4rig@group.calendar.google.com`, calendarName }
+	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, "foo 123" }
+	return event.Publish(&calendar, accessToken)
 }
 
 func RefreshAccessToken() (string, error) {
-	// resp, err := http.PostForm("https://accounts.google.com/o/oauth2/token", url.Values{"refresh_token": {"1/LxxA16-YwWspGM1iXoDqhKFSKNN0BzWm1zkZYKRIQt4"},"client_id": {"404966439763-uv5escoh0lqf7itsp1ifsuvtkjuv9eu9.apps.googleusercontent.com"},"client_secret": {"H7c2qB_YuB6CWKcPg9img88R"},"grant_type": {"refresh_token"}} )
-	// if (err != nil){
-	// 	return "", err
-	// }
-	// body, err := ioutil.ReadAll(resp.Body)
-	// defer resp.Body.Close()
-	// if (err != nil){
-	// 	return "", err
-	// }
-	// var accessTokenResponse interface{}
-	// err = json.Unmarshal(body, &accessTokenResponse)
-	// if (err != nil){
-	// 	return "", err
-	// }
-	// m := accessTokenResponse.(map[string]interface{})
-	// return m["access_token"].(string), nil
-
-	return "ya29.AHES6ZQvJBnW3AJ75a7TBuCQlUfZwcH0R5XIwbP-86Mx84GRkk1jAzI", nil
+	resp, err := http.PostForm("https://accounts.google.com/o/oauth2/token", url.Values{"refresh_token": {"1/LxxA16-YwWspGM1iXoDqhKFSKNN0BzWm1zkZYKRIQt4"},"client_id": {"404966439763-uv5escoh0lqf7itsp1ifsuvtkjuv9eu9.apps.googleusercontent.com"},"client_secret": {"H7c2qB_YuB6CWKcPg9img88R"},"grant_type": {"refresh_token"}} )
+	if (err != nil){
+		return "", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if (err != nil){
+		return "", err
+	}
+	var accessTokenResponse interface{}
+	err = json.Unmarshal(body, &accessTokenResponse)
+	if (err != nil){
+		return "", err
+	}
+	m := accessTokenResponse.(map[string]interface{})
+	return m["access_token"].(string), nil
 }
 
-// func (e *CalendarEvent) Publish(accessToken string) (string, error){
-// 	url := "https://www.googleapis.com/calendar/v3/calendars/" + e.Calendar.Id + "/events"
-
-	//execute( parse_url("https://www.googleapis.com/calendar/v3/calendars/:calendarId/events", parameters), data, { :verb => "post" } )
-	// b, err := json.Marshal(`{}`)
-	// if err != nil {
-	// 	log.Fatal("JSON Error: ", err)
-	// }
-	// br := bytes.NewBuffer(b)
-	// log.Println("b: ", br)
-
-	// req, err := http.NewRequest("POST", "https://accounts.google.com/o/oauth2/token", br)
-	// req.Header.Add("Content-Type", `"application/json"`)
-	// if (err != nil){
-	// 	log.Fatalf("http.NewRequest POST error: %v", err)
-	// }
-	// resp, err := http.DefaultClient.Do(req)
-	// if (err != nil){
-	// 	log.Fatalf("client.Do error: %v", err)
-	// }
-	// defer resp.Body.Close()
-
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if (err != nil){
-	// 	log.Fatalf("ioutil.ReadAll error: %v", err)
-	// }
-	// fmt.Printf("resp body: %s\n", body)
-
-	//return url, nil
-//}
+func (e *CalendarEvent) Publish(calendar *Calendar, accessToken string) ([]byte, error){
+	url := "https://www.googleapis.com/calendar/v3/calendars/" + calendar.Id + "/events?key=AIzaSyDB-83UlaVu-YL1MDLaUs2frIug2xn_XaQ"
+	fmt.Println("url: ", url)
+	b, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+	br := bytes.NewBuffer(b)
+	fmt.Println("b: ", br)
+	req, err := http.NewRequest("POST", url, br)
+	req.Header.Add("Authorization", "Bearer " + accessToken)
+	req.Header.Add("Content-Type", "application/json")
+	if (err != nil){
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if (err != nil){
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if (err != nil){
+		return nil, err
+	}
+	fmt.Printf("%s\n", body)
+	return body, nil
+}
