@@ -39,7 +39,7 @@ func (p *Playlist) Publish(calendarName string, items []ScheduledBlock) (string,
 func (scheduledBlock ScheduledBlock) Publish(calendarName string, accessToken string) ([]byte, error){
 	log.Printf("Publishing %s to %s at %s\n", scheduledBlock.Block.Title, calendarName, scheduledBlock.Start.DateTime)
 	calendar := Calendar{ `fh2cbs3kr39l29itsq0l7s4rig@group.calendar.google.com`, calendarName }
-	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, scheduledBlock.Block.Series }
+	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, "Series: " + scheduledBlock.Block.Series }
 	return event.Publish(&calendar, accessToken)
 }
 
