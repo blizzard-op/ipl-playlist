@@ -9,6 +9,7 @@ import (
 	"strings"
 	"math"
 	"os"
+	"path"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -34,15 +35,16 @@ func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *
 
 func (b *AvailableBlock) GetDuration() int {
 	total := 0
-	output_filepath := "tmp.flv" // TODO adapt to original file suffix
-	cleanup(output_filepath)
+	var itemPath, dir, file, tmpPath string
 	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
 	if err != nil {
 		log.Fatalf("regexp.Compile: %v", err)
 	}
 	for _, f := range b.Items {
-		path := f.Name()
-		cmd := exec.Command("ffmpeg", "-i", path, "-c", "copy", "-t", "1", output_filepath) // hack to get zero exit code
+		itemPath = f.Name()
+		dir, file = path.Split(itemPath)
+		tmpPath = path.Join(dir,"tmp-" + file)
+		cmd := exec.Command("ffmpeg", "-i", itemPath, "-c", "copy", "-t", "1", tmpPath) // hack to get zero exit code
 		stdout, er := cmd.CombinedOutput()
 		if er != nil {
 			log.Fatalf("cmd.CombinedOutput: %v", er)
@@ -57,7 +59,7 @@ func (b *AvailableBlock) GetDuration() int {
 			val := int( math.Pow(60, float64(len(parts[i+1:]))) ) * x
 			total = total + val
 		}
-		cleanup(output_filepath)
+		cleanup(tmpPath)
 	}
 	fmt.Printf("Using %s [%ds]\n", b.Title, total)
 	return total
