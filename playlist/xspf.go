@@ -6,12 +6,12 @@ import (
 	"encoding/xml"
 )
 
-func (xspfPlaylist *XspfPlaylist) Output() (*os.File, error) {
+func (xspfPlaylist *XspfPlaylist) Output(filepath string) (*os.File, error) {
 	xmlstring, err := xml.MarshalIndent(xspfPlaylist, "", "    ")
 	if err != nil {
 	    log.Fatalf("xml.MarshalIndent: %v", err)
 	}
-	output, err := os.Create("out.xspf")
+	output, err := os.Create(filepath)
 	if err != nil {
 	    return nil, err
 	}

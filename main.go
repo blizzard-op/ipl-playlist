@@ -24,6 +24,7 @@ var endsAtTime string;
 
 var configFilepath string;
 var extrasConfigFilepath string;
+var outputFilepath string;
 
 var skipPublish bool;
 var skipOutput bool;
@@ -35,6 +36,7 @@ func init() {
 	flag.StringVar(&endsAtTime, "end", now.Add(time.Hour*2 + time.Minute*1).Format(timeFormat), "End time. Default is 24 hours from now.")
 	flag.StringVar(&configFilepath, "config", "config.yml", "Config filepath. Default is './config.yml.'")
 	flag.StringVar(&extrasConfigFilepath, "extras", "config.yml", "Extras config filepath. Default is './config.yml.'")
+	flag.StringVar(&outputFilepath, "output", "out.xspf", "Output filepath. Default is './out.xspf.'")
 	flag.BoolVar(&skipPublish, "skipPublish", false, "Skip publishing. Default is false.")
 	flag.BoolVar(&skipOutput, "skipOutput", false, "Skip output file. Default is false.")
 	flag.Parse() // parses the flags
@@ -81,7 +83,7 @@ func main() {
 			}
 		}
 		xspf := playlist.XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
-		outfile, err := xspf.Output()
+		outfile, err := xspf.Output(outputFilepath)
 		if err != nil {
 			log.Fatal("Could not make playlist. %v", err)
 		}
