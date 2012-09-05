@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"math"
+	"math/rand"
 	"os"
 	"path"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
@@ -35,15 +36,15 @@ func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *
 
 func (b *AvailableBlock) GetDuration() int {
 	total := 0
-	var itemPath, dir, file, tmpPath string
+	var itemPath, tmpPath string
 	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
 	if err != nil {
 		log.Fatalf("regexp.Compile: %v", err)
 	}
 	for _, f := range b.Items {
 		itemPath = f.Name()
-		dir, file = path.Split(itemPath)
-		tmpPath = path.Join(dir,"tmp-" + file)
+		tmpPath = path.Join( os.TempDir(), "ffmpeg" + strconv.Itoa(rand.Intn(5000000 + 1) + 1000000) + path.Ext(itemPath))
+		fmt.Printf("\n%v\n", tmpPath)
 		cmd := exec.Command("ffmpeg", "-i", itemPath, "-c", "copy", "-t", "1", tmpPath) // hack to get zero exit code
 		stdout, er := cmd.CombinedOutput()
 		if er != nil {
