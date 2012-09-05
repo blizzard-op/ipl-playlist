@@ -16,7 +16,6 @@ import (
 )
 
 func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *AvailableBlock {
-	fmt.Println("GOOS: ", runtime.GOOS)
 	b.Title = t
 	b.Series = s
 	b.DoPublish = u
@@ -25,8 +24,18 @@ func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *
 		log.Fatalf("No filepaths for %s.", t)
 	}	
 	b.Items = make([]*os.File, count)
+	var p string
 	for i, e := range filepaths {
-		f, err := os.Open(e.(yaml.Scalar).String())
+
+		if ( runtime.GOOS == "windows" ){
+			n := e.(yaml.Map).Key("C")
+			p = "C:" + n.(yaml.Scalar).String()
+		} else {
+			p = e.(yaml.Scalar).String()
+		}
+
+
+		f, err := os.Open(p)
 		if err != nil {
 			log.Fatalf("Missing file for %s.", t)
 		}
