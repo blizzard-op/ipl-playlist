@@ -11,10 +11,12 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"runtime"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
 func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *AvailableBlock {
+	fmt.Println("GOOS: ", runtime.GOOS)
 	b.Title = t
 	b.Series = s
 	b.DoPublish = u
@@ -43,8 +45,8 @@ func (b *AvailableBlock) GetDuration() int {
 	}
 	for _, f := range b.Items {
 		itemPath = f.Name()
-		tmpPath = path.Join( os.TempDir(), "ffmpeg" + strconv.Itoa(rand.Intn(5000000 + 1) + 1000000) + path.Ext(itemPath))
-		fmt.Printf("\n%v\n", tmpPath)
+		tmpPath = path.Join( os.TempDir(), "ipl-playlist-" + strconv.Itoa(rand.Intn(500000 + 1) + 100000) + path.Ext(itemPath))
+		fmt.Println(tmpPath)
 		cmd := exec.Command("ffmpeg", "-i", itemPath, "-c", "copy", "-t", "1", tmpPath) // hack to get zero exit code
 		stdout, er := cmd.CombinedOutput()
 		if er != nil {
