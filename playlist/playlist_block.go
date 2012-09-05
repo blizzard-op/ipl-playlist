@@ -62,16 +62,7 @@ func (b *AvailableBlock) GetDuration() int {
 			val := int( math.Pow(60, float64(len(parts[i+1:]))) ) * x
 			total = total + val
 		}
-		cleanup(tmpPath)
 	}
 	fmt.Printf("Using %s [%ds]\n", b.Title, total)
 	return total
-}
-
-func cleanup(path string) {
-	if f, err := os.Open(path); err == nil {
-		if err := os.Remove(f.Name()); err != nil {
-			log.Fatal(err)
-		}
-	}
 }
