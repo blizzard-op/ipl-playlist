@@ -62,7 +62,6 @@ func (b *AvailableBlock) GetDuration() int {
 		} else {
 			tmpPath = path.Join(os.TempDir(), tmpFilename)
 		}
-		fmt.Println(tmpPath)
 		cmd := exec.Command("ffmpeg", "-i", itemPath, "-c", "copy", "-t", "1", tmpPath) // hack to get zero exit code
 		stdout, er := cmd.CombinedOutput()
 		if er != nil {
