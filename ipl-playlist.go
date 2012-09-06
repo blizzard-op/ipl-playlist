@@ -72,6 +72,7 @@ func main() {
 	p := new(playlist.Playlist).Init(startsAt, endsAt, *config, *extrasConfig)
 	log.Println("Scheduling playlist...")
 	scheduledBlocks := p.ScheduledBlocks()
+	defer playlist.Cleanup()
 
 	if (!skipOutput){
 		// output playlist
@@ -98,5 +99,4 @@ func main() {
 		}
 		log.Println("Done. Published playlist. ", ok)
 	}
-	
 }
