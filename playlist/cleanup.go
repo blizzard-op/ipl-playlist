@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"log"
 )
 
 func Cleanup() error {
@@ -23,8 +22,11 @@ func Cleanup() error {
 		return err
 	}
 	for _, p := range filepaths {
-		log.Printf("cleaning up %s\n", p)
 		f, err := os.Open(p)
+		if err != nil {
+			return err
+		}
+		err = f.Close()
 		if err != nil {
 			return err
 		}

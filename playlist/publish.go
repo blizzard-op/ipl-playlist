@@ -38,7 +38,7 @@ func (p *Playlist) Publish(calendar *Calendar, items []ScheduledBlock) (string, 
 
 func (scheduledBlock ScheduledBlock) Publish(calendar *Calendar, accessToken string) ([]byte, error){
 	log.Printf("Publishing %s to %s at %s\n", scheduledBlock.Block.Title, calendar.Name, scheduledBlock.Start.DateTime)
-	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, "Series: " + scheduledBlock.Block.Series }
+	event := CalendarEvent{ scheduledBlock.Start, scheduledBlock.End, scheduledBlock.Block.Title, "Series: " + scheduledBlock.Block.Series + "\nOriginally aired at: true" }
 	return event.Publish(calendar, accessToken)
 }
 
