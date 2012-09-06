@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"time"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
 
@@ -54,7 +55,7 @@ func (b *AvailableBlock) GetDuration() int {
 	}
 	for _, f := range b.Items {
 		itemPath = f.Name()
-		tmpPath = path.Join( os.TempDir(), "ipl-playlist-" + strconv.Itoa(rand.Intn(500000 + 1) + 100000) + path.Ext(itemPath))
+		tmpPath = path.Join( os.TempDir(), "ipl-playlist-" + strconv.Itoa(rand.Intn(50000 + 1) + 10000) + "-" + strconv.FormatInt(time.Now().Unix(), 10) + path.Ext(itemPath))
 		fmt.Println(tmpPath)
 		cmd := exec.Command("ffmpeg", "-i", itemPath, "-c", "copy", "-t", "1", tmpPath) // hack to get zero exit code
 		stdout, er := cmd.CombinedOutput()
