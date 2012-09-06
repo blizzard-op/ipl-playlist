@@ -48,14 +48,20 @@ func (b *AvailableBlock) Init(t string, s string, filepaths yaml.List, u bool) *
 
 func (b *AvailableBlock) GetDuration() int {
 	total := 0
-	var itemPath, tmpPath string
+	var itemPath, tmpPath, tmpFilename string
 	exp, err := regexp.Compile("Duration: ([0-9]{2}:[0-9]{2}:[0-9]{2}).[0-9]{2}")
 	if err != nil {
 		log.Fatalf("regexp.Compile: %v", err)
 	}
 	for _, f := range b.Items {
 		itemPath = f.Name()
-		tmpPath = path.Join( os.TempDir(), "ipl-playlist-" + strconv.Itoa(rand.Intn(50000 + 1) + 10000) + "-" + strconv.FormatInt(time.Now().Unix(), 10) + path.Ext(itemPath))
+		tmpFilename = "ipl-playlist-" + strconv.Itoa(rand.Intn(50000 + 1) + 10000) + "-" + strconv.FormatInt(time.Now().Unix(), 10) + path.Ext(itemPath)
+		if(runtime.GOOS == "windows"){
+			a := []string{os.TempDir(), tmpFilename}
+			tmpPath = strings.Join(a, "\\")
+		} else {
+			tmpPath = path.Join(os.TempDir(), tmpFilename)
+		}
 		fmt.Println(tmpPath)
 		cmd := exec.Command("ffmpeg", "-i", itemPath, "-c", "copy", "-t", "1", tmpPath) // hack to get zero exit code
 		stdout, er := cmd.CombinedOutput()
