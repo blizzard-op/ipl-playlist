@@ -5,6 +5,8 @@ import (
 	"time"
 	"os/exec"
 	"log"
+	"runtime"
+	"strings"
 	playlist "github.com/ign/ipl-playlist/playlist"
 	yaml "github.com/kylelemons/go-gypsy/yaml"
 )
@@ -77,10 +79,18 @@ func main() {
 	if (!skipOutput){
 		// output playlist
 		log.Println("Outputting playlist...")
+		var trackLocation string
 		tracks := make([]playlist.XspfTrack, 0)
 		for _, scheduleBlock := range scheduledBlocks {
 			for _, item := range scheduleBlock.Block.Items {
-				tracks = append(tracks, playlist.XspfTrack{Location: "file://" + item.Name()})
+
+				if(runtime.GOOS == "windows"){
+					trackLocation = "file:///" + strings.Replace(item.Name(), "\\", "/", -1)
+				} else {
+					trackLocation = "file://" + item.Name()
+				}
+
+				tracks = append(tracks, playlist.XspfTrack{Location: trackLocation})
 			}
 		}
 		xspf := playlist.XspfPlaylist{Version: "1", Xmlns: "http://xspf.org/ns/0/", XspfTracks: tracks}
